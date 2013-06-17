@@ -12,6 +12,7 @@ class Main(pyglet.window.Window):
     def __init__(self, **kwargs):
         super(Main, self).__init__(**kwargs)
         self.streams = [VideoStream(0, 1024, 768)]
+        self.separation = 0
     
     def on_resize(self, width, height):
         glViewport(0, 0, width, height)
@@ -41,8 +42,8 @@ class Main(pyglet.window.Window):
             glTexCoord2f(0.0 + du, 1.0 + dv)
             glVertex2f(x0, y1)
         glBegin(GL_QUADS)
-        quad(0.0, 0.0, 0.5, 1.0, -0.125, 0.0)
-        quad(0.5, 0.0, 1.0, 1.0, +0.125, 0.0)
+        quad(0.0-self.separation, 0.0, 0.5-self.separation, 1.0, -0.125, 0.0)
+        quad(0.5+self.separation, 0.0, 1.0+self.separation, 1.0, +0.125, 0.0)
         glEnd()
 
     def on_mouse_press(self, x, y, button, modifiers):
@@ -52,7 +53,9 @@ class Main(pyglet.window.Window):
         return
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
-        return
+        if buttons & pyglet.window.mouse.LEFT:
+            print "separation:" + str(self.separation)
+            self.separation += (dx * 0.5) / self.width
 
 
 def main():
