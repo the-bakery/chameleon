@@ -1,3 +1,5 @@
+import argparse
+
 import pyglet
 from pyglet.gl import *
 
@@ -11,10 +13,21 @@ class Main(pyglet.window.Window):
 
     def __init__(self, **kwargs):
         super(Main, self).__init__(**kwargs)
-        self.streams = [VideoStream(0, 1024, 768)]
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+          'left',  metavar='LEFT',
+          help='left stream  e.g. rtsp://192.168.0.16:8086'
+        )
+        parser.add_argument(
+          'right', metavar='RIGHT',
+          help='right stream e.g. rtsp://192.168.0.23:8086'
+        )
+        args = parser.parse_args()
+        self.streams = [VideoStream(args.left,  640, 480),
+                        VideoStream(args.right, 640, 480)]
         self.separation = 0.125
         self.vert_offset = 0
-    
+
     def on_resize(self, width, height):
         glViewport(0, 0, width, height)
         glMatrixMode(GL_PROJECTION)
@@ -30,20 +43,26 @@ class Main(pyglet.window.Window):
     def on_idle(self, dt):
         for stream in self.streams:
             stream.next()
-        
+
     def on_draw(self):
         glClear(GL_COLOR_BUFFER_BIT)
         def quad(x0, y0, x1, y1, du, dv):
-            glTexCoord2f(0.0 + du, 0.0 + dv)
+            glTexCoord2f(0.0 + dv, 0.0 + du)
             glVertex2f(x0, y0)
-            glTexCoord2f(1.0 + du, 0.0 + dv)
+            glTexCoord2f(0.0 + dv, 1.0 + du)
             glVertex2f(x1, y0)
-            glTexCoord2f(1.0 + du, 1.0 + dv)
+            glTexCoord2f(1.0 + dv, 1.0 + du)
             glVertex2f(x1, y1)
-            glTexCoord2f(0.0 + du, 1.0 + dv)
+            glTexCoord2f(1.0 + dv, 0.0 + du)
             glVertex2f(x0, y1)
+        # left
+        self.streams[0].bind()
         glBegin(GL_QUADS)
         quad(0.0, 0, 0.5, 1.0, -self.separation, self.vert_offset)
+        glEnd()
+        # right
+        self.streams[1].bind()
+        glBegin(GL_QUADS)
         quad(0.5, 0, 1.0, 1.0, +self.separation, self.vert_offset)
         glEnd()
 
@@ -63,7 +82,6 @@ class Main(pyglet.window.Window):
 def main():
     config = pyglet.gl.Config(sample_buffers=1, samples=4, double_buffer=True)
     window = Main(caption='chameleon', resizable=True, vsync=True, config=config)
-
     pyglet.clock.schedule_interval(window.on_idle, (1.0/30))
     pyglet.app.run()
 

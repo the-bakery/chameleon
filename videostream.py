@@ -26,6 +26,9 @@ class VideoStream(object):
         if status:
             width = frame.shape[1]
             height = frame.shape[0]
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, frame.ctypes.data)
             glBindTexture(GL_TEXTURE_2D, self.texture)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, frame.ctypes.data)
+
+    def bind(self):
+	glBindTexture(GL_TEXTURE_2D, self.texture)
 
